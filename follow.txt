@@ -1,0 +1,11 @@
+// we create module of our github repo named
+// go mod init github.scom/nikhilharma270027/GOLang-student-api
+
+// create cmd folder inside 
+// create project name : student-api
+
+// creatre config floder in root folder
+// create local.yaml file
+
+// create storage folder
+// create storage.db file
