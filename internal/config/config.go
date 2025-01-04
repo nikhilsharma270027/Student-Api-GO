@@ -57,3 +57,7 @@ func MustLoad() *Config {
 
 	return &cfg
 }
+
+// imp! Note:
+// Name like MustLoad : the function inside it must run or dont
+// return error ,fatal just stop the program
