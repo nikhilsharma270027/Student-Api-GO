@@ -9,3 +9,6 @@
 
 // create storage folder
 // create storage.db file
+
+// to start server
+// CLI : go run cmd/students-api/main.go -config config/local.yaml 
