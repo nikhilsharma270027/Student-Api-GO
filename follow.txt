@@ -12,3 +12,7 @@
 
 // to start server
 // CLI : go run cmd/students-api/main.go -config config/local.yaml 
+
+
+// create http folder inside internal folder
+// http-> handler -> student -> student.go
