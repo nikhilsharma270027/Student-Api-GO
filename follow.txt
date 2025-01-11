@@ -16,3 +16,10 @@
 
 // create http folder inside internal folder
 // http-> handler -> student -> student.go
+
+
+
+
+// ---- adding database ---- //
+create folder in internal named storage inside storage.go
+inside stroage create folder name sqlite inside  file sqlite.go

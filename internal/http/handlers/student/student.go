@@ -3,16 +3,20 @@ package student
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/nikhilsharma270027/GOLang-student-api/internal/storage"
 	"github.com/nikhilsharma270027/GOLang-student-api/internal/types"
 	"github.com/nikhilsharma270027/GOLang-student-api/internal/utils/response"
 )
 
-func New() http.HandlerFunc {
+// dependence injection : student like plug and play
+func New(storage storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Creating a student")
 
@@ -45,8 +49,23 @@ func New() http.HandlerFunc {
 			return
 		}
 
+		// as a dependenice we receiving / props
+		lastId, err := storage.CreateStudent(
+			student.Name,
+			student.Email,
+			student.Age,
+		)
+
+		slog.Info("user created successfully!!", slog.String("userId", fmt.Sprint(lastId)))
+
+		if err != nil { // it is a database err
+			response.WriteJson(w, http.StatusInternalServerError, err)
+			return
+		}
+
 		// w.Write([]byte("We- welcome to student api"))
-		response.WriteJson(w, http.StatusCreated, map[string]string{"success": "ok"})
+		// response.WriteJson(w, http.StatusCreated, map[string]string{"success": "ok"}) // changed
+		response.WriteJson(w, http.StatusCreated, map[string]int64{"id:": lastId})
 		// if rest api is created we use 200 , like its working good
 
 	}
@@ -55,3 +74,27 @@ func New() http.HandlerFunc {
 // we dont get data directly we need to decode and use struct to serilize
 
 // we can use custom error fmt.Errorf("error body")
+
+func GetById(storage storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		id := r.PathValue("id") // to find by url /{id}
+
+		slog.Info("Getting a student", slog.String("id", id))
+
+		intId, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+
+		student, err := storage.GetStudentById(intId)
+		if err != nil {
+			slog.Error("error getting user", slog.String("id", id))
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, student)
+	}
+}

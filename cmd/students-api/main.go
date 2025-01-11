@@ -13,6 +13,7 @@ import (
 
 	"github.com/nikhilsharma270027/GOLang-student-api/internal/config"
 	"github.com/nikhilsharma270027/GOLang-student-api/internal/http/handlers/student"
+	"github.com/nikhilsharma270027/GOLang-student-api/internal/types/sqlite"
 )
 
 func main() {
@@ -21,10 +22,19 @@ func main() {
 	cfg := config.MustLoad()
 
 	// database setup
+	// storage is database instance
+	// , er := sqlite.New(cfg) changed after we need storage as prop
+	storage, er := sqlite.New(cfg) //
+	if er != nil {
+		log.Fatal(er)
+	}
+
+	slog.Info("Storage Initialized", slog.String("env", cfg.Env), slog.String("version", "1.0.0"))
 	// setup router
 	router := http.NewServeMux()
 
-	router.HandleFunc("POST /api/students", student.New())
+	router.HandleFunc("POST /api/students", student.New(storage))
+	router.HandleFunc("POST /api/students/{id}", student.GetById(storage))
 
 	// setup server
 	server := http.Server{
@@ -56,7 +66,7 @@ func main() {
 	//
 	// after done get data/trigger the next code will run
 
-	slog.Info("Shuuting down ")
+	slog.Info("Shuting down ")
 
 	// we use timer if after specific time shtdown the server
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
