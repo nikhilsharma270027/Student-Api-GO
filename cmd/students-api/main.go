@@ -34,7 +34,8 @@ func main() {
 	router := http.NewServeMux()
 
 	router.HandleFunc("POST /api/students", student.New(storage))
-	router.HandleFunc("POST /api/students/{id}", student.GetById(storage))
+	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
+	router.HandleFunc("GET /api/students", student.GetList(storage))
 
 	// setup server
 	server := http.Server{
@@ -45,7 +46,7 @@ func main() {
 	// fmt.Printf("Envirnment started %s\n", cfg.Env)
 	// fmt.Printf("Database started %s\n", cfg.StoragePath)
 	slog.Info("Server started", slog.String("addressc", cfg.Addr))
-	fmt.Printf("Server started %s\n", cfg.HTTPServer)
+	fmt.Printf("Server started on %s\n", cfg.Addr)
 
 	done := make(chan os.Signal, 1)
 
@@ -53,10 +54,16 @@ func main() {
 	// its like if any interrupt by user or any other reason
 	// send data in "done", it will stop the server
 
+	// go func() {
+	// 	err := server.ListenAndServe() // will start server
+	// 	if err != nil {
+	// 		log.Fatal("failed to start server", err)
+	// 	}
+	// }()
 	go func() {
-		err := server.ListenAndServe() // will start server
-		if err != nil {
-			log.Fatal("failed to start server", err)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Server startup failed", slog.String("error", err.Error()))
+			done <- os.Interrupt // Trigger shutdown if server can't start
 		}
 	}()
 
