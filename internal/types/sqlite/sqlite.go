@@ -122,3 +122,55 @@ func (s *Sqlite) GetStudents() ([]types.Student, error) {
 
 	return students, err
 }
+func (s *Sqlite) UpdateStudentById(name string, email string, age int, id int64) error {
+	// stmt, err := s.Db.Prepare("SELECT * FROM students WHERE id = ? LIMIT 1") // search based on id
+	stmt, err := s.Db.Prepare("UPDATE students SET name = ?, email = ?, age = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	// Execute the prepared statement with the provided data
+	result, err := stmt.Exec(name, email, age, id)
+	if err != nil {
+		return err // Return the error if execution fails
+	}
+
+	// Check the number of rows affected to ensure the update was successful
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err // Return the error if unable to fetch affected rows
+	}
+
+	// If no rows were affected, return an error indicating the student was not found
+	if rowsAffected == 0 {
+		return fmt.Errorf("no student found with the given ID: %d", id)
+	}
+
+	return nil // Return nil if the update was successful
+}
+
+func (s *Sqlite) DeleteStudentById(id int64) error {
+	stmt, err := s.Db.Prepare("DELETE FROM students WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("no student found with the given ID: %d", id)
+	}
+
+	return nil
+}
